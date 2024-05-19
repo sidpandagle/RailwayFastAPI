@@ -66,7 +66,18 @@ class GetReport(BaseModel):
     pages: str
     cover_img: str
     created_date: str
-
+    
+class GetReportForExcel(BaseModel):
+    id: int
+    url: str
+    category_name: str
+    title: str
+    summary: str
+    description: str
+    toc: str
+    highlights: str
+    pages: str
+    created_date: str
 
 class GetLatestReport(BaseModel):
     title: str
@@ -135,6 +146,45 @@ async def get_reports(db: Session = Depends(get_db)):
             cover_img=report.cover_img,
             pages=report.pages,
             created_date=report.created_date,
+        )
+        for report in reports
+    ]
+    return {"data": report_list}
+
+
+@router.get("/excel-report")
+async def get_reports_for_excel(db: Session = Depends(get_db)):
+    reports = (
+        db.query(Report)
+        .join(Category, Report.category_id == Category.id)
+        .with_entities(
+            Report.id,
+            Report.url,
+            Category.name.label("category_name"),
+            Report.title,
+            Report.summary,
+            Report.pages,
+            Report.created_date,
+            Report.description,
+            Report.toc,
+            Report.highlights,
+    
+        )
+        .order_by(Report.id)
+        .all()
+    )
+    report_list = [
+        GetReportForExcel(
+            id=report.id,
+            url=report.url,
+            category_name=report.category_name,
+            summary=report.summary,
+            title=report.title,
+            pages=report.pages,
+            created_date=report.created_date,
+            description=report.description,
+            toc=report.toc,
+            highlights=report.highlights,
         )
         for report in reports
     ]
@@ -518,3 +568,4 @@ def upload(file: UploadFile = File(...)):
     return {
         "message": f"Successfully uploaded and compressed {file.filename} to {file_path}"
     }
+

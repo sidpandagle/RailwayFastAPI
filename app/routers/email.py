@@ -54,8 +54,7 @@ async def email(email_request: EmailRequest):
             msg = MIMEMultipart()
             msg["From"] = "CMI Sales <sales@congruencemarketinsights.com>"
             msg["To"] = "sales@congruencemarketinsights.com"
-            msg["Cc"] = "siddhant.pandagle1998@gmail.com"
-            recipients = ["sales@congruencemarketinsights.com", "siddhant.pandagle1998@gmail.com"]
+            recipients = ["sales@congruencemarketinsights.com"]
             
             msg["Subject"] = email_request.subject
 
