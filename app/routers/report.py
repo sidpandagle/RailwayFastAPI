@@ -1,5 +1,5 @@
 from typing import List, Optional
-from fastapi import Depends, APIRouter, HTTPException, File, UploadFile
+from fastapi import Depends, APIRouter, HTTPException, File, Response, UploadFile
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from app.models import Category, Report, ReportImage, Price
@@ -9,6 +9,8 @@ import os
 import io
 from datetime import datetime
 from PIL import Image
+
+import pandas as pd
 
 from app.routers.report_image import CreateReportImageRequest, UpdateReportImageRequest
 
@@ -171,24 +173,41 @@ async def get_reports_for_excel(db: Session = Depends(get_db)):
     
         )
         .order_by(Report.id)
+        # .limit(5)
         .all()
     )
-    report_list = [
-        GetReportForExcel(
-            id=report.id,
-            url=report.url,
-            category_name=report.category_name,
-            summary=report.summary,
-            title=report.title,
-            pages=report.pages,
-            created_date=report.created_date,
-            description=report.description,
-            toc=report.toc,
-            highlights=report.highlights,
-        )
-        for report in reports
-    ]
-    return {"data": report_list}
+    # report_list = [
+    #     GetReportForExcel(
+    #         id=report.id,
+    #         url=report.url,
+    #         category_name=report.category_name,
+    #         summary=report.summary,
+    #         title=report.title,
+    #         pages=report.pages,
+    #         created_date=report.created_date,
+    #         description=report.description,
+    #         toc=report.toc,
+    #         highlights=report.highlights,
+    #     )
+    #     for report in reports
+    # ]
+    # Convert JSON data to DataFrame
+    df = pd.DataFrame(reports)
+    
+    # Save DataFrame to a BytesIO buffer as an Excel file
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False)
+    
+    # Set the buffer position to the beginning
+    output.seek(0)
+    
+    # Return the Excel file as a response
+    headers = {
+        'Content-Disposition': 'attachment; filename="output.xlsx"'
+    }
+    return Response(content=output.read(), media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', headers=headers)
+
 
 
 @router.get("/category/category_count")
