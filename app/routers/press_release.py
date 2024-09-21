@@ -148,6 +148,7 @@ async def get_searched_press_releases(
             PressRelease.url,
             PressRelease.cover_img,
         )
+        .order_by(func.cast(PressRelease.created_date, DateTime).desc())
         .filter(
             # func.to_tsvector("english", Report.title).match(
             #     keyword, postgresql_regconfig="english"
@@ -159,7 +160,6 @@ async def get_searched_press_releases(
                 PressRelease.title.ilike(f"%{keyword}%"),
             )
         )
-        .order_by(func.cast(PressRelease.created_date, DateTime).desc())
         .offset(offset)
         .limit(per_page)
         .all()
@@ -283,6 +283,7 @@ async def get_press_release_by_category_url(
                 PressRelease.cover_img,
             )
             # .filter(Category.url == category_url)
+            .order_by(func.cast(PressRelease.created_date, DateTime).desc())
             .offset(offset)
             .limit(per_page)
             .all()
