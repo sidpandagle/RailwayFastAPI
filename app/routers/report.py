@@ -388,6 +388,9 @@ async def get_report_by_url(report_url: str, db: Session = Depends(get_db)):
         .filter(Report.url == report_url)
         .first()
     )
+    
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
 
     get_report_data = GetReportByUrl(
         id=report.id,
@@ -426,6 +429,10 @@ async def get_reportmeta_by_url(report_url: str, db: Session = Depends(get_db)):
         .filter(Report.url == report_url)
         .first()
     )
+    
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
+
 
     get_report_data = GetReportMetaData(
         url=report.url,
